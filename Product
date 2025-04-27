@@ -1,0 +1,58 @@
+Model
+public class ProductModel
+{
+    public string ProductName { get; set; }
+    public string Description { get; set; }
+    public decimal Price { get; set; }
+    public string ImageUrl { get; set; }
+    public string Category { get; set; }
+}
+Controller
+using System.Web.Mvc;
+using Sitecore.Data.Items;
+using Sitecore.Mvc.Presentation;
+using Sitecore.Resources.Media;
+
+public class ProductController : Controller
+{
+    public ActionResult Index()
+    {
+        Item renderingContextItem = RenderingContext.Current.Rendering.Item;
+        var model = new ProductModel
+        {
+            ProductName = renderingContextItem.Fields["ProductName"]?.Value ?? string.Empty,
+            Description = renderingContextItem.Fields["Description"]?.Value ?? string.Empty,
+            Price = decimal.TryParse(renderingContextItem.Fields["Price"]?.Value, out var price) ? price : 0,
+            ImageUrl = renderingContextItem.Fields["Image"] != null ? MediaManager.GetMediaUrl(renderingContextItem.Fields["Image"]) : string.Empty,
+            Category = renderingContextItem.Fields["Category"]?.Value ?? string.Empty
+        };
+
+        return View(model);
+    }
+}
+View
+@model ProductModel
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>@Model.ProductName</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet" />
+</head>
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <h1>@Model.ProductName</h1>
+                <div>@Html.Raw(Model.Description)</div>
+                <p>Price: @Model.Price.ToString("C")</p>
+                <p>Category: @Model.Category</p>
+                @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                {
+                    <img src="@Model.ImageUrl" alt="@Model.ProductName" class="img-fluid" />
+                }
+            </div>
+        </div>
+    </div>
+</body>
+</html>
