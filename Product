@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Web.Mvc;
 using Sitecore.Data.Items;
 using Sitecore.Mvc.Presentation;
+using Sitecore.Resources.Media;
 
 public class ProductController : Controller
 {
@@ -27,8 +28,9 @@ public class ProductController : Controller
                 ProductName = child.Fields["ProductName"]?.Value ?? string.Empty,
                 Description = child.Fields["Description"]?.Value ?? string.Empty,
                 Price = decimal.TryParse(child.Fields["Price"]?.Value, out var price) ? price : 0,
-                ImageUrl = child.Fields["Image"] != null ? Sitecore.Resources.Media.MediaManager.GetMediaUrl(child.Fields["Image"]) : string.Empty,
-                Category = child.Fields["Category"]?.Value ?? string.Empty
+                ImageUrl = child.Fields["Image"] != null ? MediaManager.GetMediaUrl(child.Fields["Image"]) : string.Empty,
+                Category = child.Fields["Category"]?.Value ?? string.Empty,
+                Availability = child.Fields["Availability"] != null && child.Fields["Availability"].Value == "1"
             });
         }
 
@@ -59,10 +61,10 @@ View
                     {
                         <img src="@product.ImageUrl" alt="@product.ProductName" class="img-fluid" />
                     }
+                    <p>Availability: @(product.Availability ? "In Stock" : "Out of Stock")</p>
                 </div>
             }
         </div>
     </div>
 </body>
 </html>
-
