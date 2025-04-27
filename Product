@@ -8,51 +8,61 @@ public class ProductModel
     public string Category { get; set; }
 }
 Controller
+using System.Collections.Generic;
 using System.Web.Mvc;
 using Sitecore.Data.Items;
 using Sitecore.Mvc.Presentation;
-using Sitecore.Resources.Media;
 
 public class ProductController : Controller
 {
-    public ActionResult Index()
+    public ActionResult List()
     {
         Item renderingContextItem = RenderingContext.Current.Rendering.Item;
-        var model = new ProductModel
-        {
-            ProductName = renderingContextItem.Fields["ProductName"]?.Value ?? string.Empty,
-            Description = renderingContextItem.Fields["Description"]?.Value ?? string.Empty,
-            Price = decimal.TryParse(renderingContextItem.Fields["Price"]?.Value, out var price) ? price : 0,
-            ImageUrl = renderingContextItem.Fields["Image"] != null ? MediaManager.GetMediaUrl(renderingContextItem.Fields["Image"]) : string.Empty,
-            Category = renderingContextItem.Fields["Category"]?.Value ?? string.Empty
-        };
+        List<ProductModel> products = new List<ProductModel>();
 
-        return View(model);
+        foreach (Item child in renderingContextItem.Children)
+        {
+            products.Add(new ProductModel
+            {
+                ProductName = child.Fields["ProductName"]?.Value ?? string.Empty,
+                Description = child.Fields["Description"]?.Value ?? string.Empty,
+                Price = decimal.TryParse(child.Fields["Price"]?.Value, out var price) ? price : 0,
+                ImageUrl = child.Fields["Image"] != null ? Sitecore.Resources.Media.MediaManager.GetMediaUrl(child.Fields["Image"]) : string.Empty,
+                Category = child.Fields["Category"]?.Value ?? string.Empty
+            });
+        }
+
+        return View(products);
     }
 }
+
 View
-@model ProductModel
+@model IEnumerable<ProductModel>
 
 <!DOCTYPE html>
 <html>
 <head>
-    <title>@Model.ProductName</title>
+    <title>Product Listing</title>
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet" />
 </head>
 <body>
     <div class="container">
         <div class="row">
-            <div class="col-md-12">
-                <h1>@Model.ProductName</h1>
-                <div>@Html.Raw(Model.Description)</div>
-                <p>Price: @Model.Price.ToString("C")</p>
-                <p>Category: @Model.Category</p>
-                @if (!string.IsNullOrEmpty(Model.ImageUrl))
-                {
-                    <img src="@Model.ImageUrl" alt="@Model.ProductName" class="img-fluid" />
-                }
-            </div>
+            @foreach (var product in Model)
+            {
+                <div class="col-md-4">
+                    <h2>@product.ProductName</h2>
+                    <p>@Html.Raw(product.Description)</p>
+                    <p>Price: @product.Price.ToString("C")</p>
+                    <p>Category: @product.Category</p>
+                    @if (!string.IsNullOrEmpty(product.ImageUrl))
+                    {
+                        <img src="@product.ImageUrl" alt="@product.ProductName" class="img-fluid" />
+                    }
+                </div>
+            }
         </div>
     </div>
 </body>
 </html>
+
