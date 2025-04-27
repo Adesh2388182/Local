@@ -1,0 +1,52 @@
+Model
+public class ServiceModel
+{
+    public string ServiceName { get; set; }
+    public string Description { get; set; }
+    public string ImageUrl { get; set; }
+}
+Controller
+using System.Web.Mvc;
+using Sitecore.Data.Items;
+using Sitecore.Mvc.Presentation;
+using Sitecore.Resources.Media;
+
+public class ServiceController : Controller
+{
+    public ActionResult Index()
+    {
+        Item renderingContextItem = RenderingContext.Current.Rendering.Item;
+        var model = new ServiceModel
+        {
+            ServiceName = renderingContextItem.Fields["ServiceName"]?.Value ?? string.Empty,
+            Description = renderingContextItem.Fields["Description"]?.Value ?? string.Empty,
+            ImageUrl = renderingContextItem.Fields["Image"] != null ? MediaManager.GetMediaUrl(renderingContextItem.Fields["Image"]) : string.Empty
+        };
+
+        return View(model);
+    }
+}
+View
+@model ServiceModel
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>@Model.ServiceName</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet" />
+</head>
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <h1>@Model.ServiceName</h1>
+                <div>@Html.Raw(Model.Description)</div>
+                @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                {
+                    <img src="@Model.ImageUrl" alt="@Model.ServiceName" class="img-fluid" />
+                }
+            </div>
+        </div>
+    </div>
+</body>
+</html>
