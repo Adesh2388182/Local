@@ -1,0 +1,45 @@
+Model
+public class AboutUsModel
+{
+    public string Title { get; set; }
+    public string Content { get; set; }
+}
+Controller
+using System.Web.Mvc;
+using Sitecore.Data.Items;
+using Sitecore.Mvc.Presentation;
+
+public class AboutUsController : Controller
+{
+    public ActionResult Index()
+    {
+        Item renderingContextItem = RenderingContext.Current.Rendering.Item;
+        var model = new AboutUsModel
+        {
+            Title = renderingContextItem.Fields["Title"]?.Value ?? string.Empty,
+            Content = renderingContextItem.Fields["Content"]?.Value ?? string.Empty
+        };
+
+        return View(model);
+    }
+}
+View
+@model AboutUsModel
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>@Model.Title</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet" />
+</head>
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <h1>@Model.Title</h1>
+                <div>@Html.Raw(Model.Content)</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
