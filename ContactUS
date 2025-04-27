@@ -1,0 +1,58 @@
+Model
+public class ContactUsModel
+{
+    public string CustomerSupport { get; set; }
+    public string FeedbackFormUrl { get; set; }
+    public string LocationMapUrl { get; set; }
+}
+
+Controller
+using System.Web.Mvc;
+using Sitecore.Data.Items;
+using Sitecore.Mvc.Presentation;
+using Sitecore.Resources.Media;
+
+public class ContactUsController : Controller
+{
+    public ActionResult Index()
+    {
+        Item renderingContextItem = RenderingContext.Current.Rendering.Item;
+        var model = new ContactUsModel
+        {
+            CustomerSupport = renderingContextItem.Fields["CustomerSupport"]?.Value ?? string.Empty,
+            FeedbackFormUrl = renderingContextItem.Fields["FeedbackForm"] != null ? renderingContextItem.Fields["FeedbackForm"].Value : string.Empty,
+            LocationMapUrl = renderingContextItem.Fields["LocationMap"] != null ? MediaManager.GetMediaUrl(renderingContextItem.Fields["LocationMap"]) : string.Empty
+        };
+
+        return View(model);
+    }
+}
+View
+@model ContactUsModel
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Contact Us</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet" />
+</head>
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <h1>Contact Us</h1>
+                <div>@Html.Raw(Model.CustomerSupport)</div>
+                @if (!string.IsNullOrEmpty(Model.FeedbackFormUrl))
+                {
+                    <p><a href="@Model.FeedbackFormUrl" class="btn btn-primary">Feedback Form</a></p>
+                }
+                @if (!string.IsNullOrEmpty(Model.LocationMapUrl))
+                {
+                    <img src="@Model.LocationMapUrl" alt="Location Map" class="img-fluid" />
+                }
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+
