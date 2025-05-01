@@ -1,0 +1,68 @@
+ProductUpdated
+// Models/ProductModel.cs
+public class ProductModel
+{
+    public string Name { get; set; }
+    public string Description { get; set; }
+    public string ImageUrl { get; set; }
+    public decimal Price { get; set; }
+}
+
+// Models/CategoryModel.cs
+public class CategoryModel
+{
+    public string Name { get; set; }
+    public string Description { get; set; }
+    public List<ProductModel> Products { get; set; }
+}
+// Controllers/ProductController.cs
+public class ProductController : Controller
+{
+    public ActionResult Index()
+    {
+        var contextItem = Sitecore.Context.Item;
+        var categories = contextItem.GetChildren()
+                                    .Where(i => i.TemplateID == new TemplateID(new ID("{YOUR-CATEGORY-TEMPLATE-ID}")))
+                                    .Select(category => new CategoryModel
+                                    {
+                                        Name = category.Fields["Category Name"].Value,
+                                        Description = category.Fields["Category Description"].Value,
+                                        Products = category.GetChildren()
+                                                           .Where(p => p.TemplateID == new TemplateID(new ID("{YOUR-PRODUCT-TEMPLATE-ID}")))
+                                                           .Select(product => new ProductModel
+                                                           {
+                                                               Name = product.Fields["Product Name"].Value,
+                                                               Description = product.Fields["Product Description"].Value,
+                                                               ImageUrl = Sitecore.Resources.Media.MediaManager.GetMediaUrl(product.Fields["Product Image"]),
+                                                               Price = decimal.Parse(product.Fields["Price"].Value)
+                                                           }).ToList()
+                                    }).ToList();
+
+        return View(categories);
+    }
+}
+<!-- Views/Product/Index.cshtml -->
+@model IEnumerable<CategoryModel>
+
+@foreach (var category in Model)
+{
+    <div class="category">
+        <h2>@category.Name</h2>
+        <p>@category.Description</p>
+        <div class="products row">
+            @foreach (var product in category.Products)
+            {
+                <div class="col-md-4">
+                    <div class="card">
+                        <img src="@product.ImageUrl" class="card-img-top" alt="@product.Name">
+                        <div class="card-body">
+                            <h5 class="card-title">@product.Name</h5>
+                            <p class="card-text">@product.Description</p>
+                            <p class="card-text">Price: @product.Price</p>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+}
